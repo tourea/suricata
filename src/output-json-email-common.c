@@ -42,6 +42,7 @@
 #include "app-layer-parser.h"
 #include "output.h"
 #include "app-layer-imap.h"
+#include "app-layer-pop3.h"
 #include "app-layer-smtp.h"
 #include "app-layer.h"
 #include "util-privs.h"
@@ -240,6 +241,7 @@ json_t *JsonEmailLogJsonData(const Flow *f, void *state, void *vtx, uint64_t tx_
 {
     IMAPState *imap_state;
     SMTPState *smtp_state;
+    POP3State *pop3_state;
     MimeDecParseState *mime_state;
     MimeDecEntity *entity;
 
@@ -258,6 +260,18 @@ json_t *JsonEmailLogJsonData(const Flow *f, void *state, void *vtx, uint64_t tx_
                 SCReturnPtr(NULL, "json_t");
             }
             IMAPTransaction *tx = vtx;
+            mime_state = tx->mime_state;
+            entity = tx->msg_tail;
+            SCLogDebug("lets go mime_state %p, entity %p, state_flag %u", mime_state, entity, mime_state ? mime_state->state_flag : 0);
+            }
+            break;
+        case ALPROTO_POP3: {
+            pop3_state = (POP3State *)state;
+            if (pop3_state == NULL) {
+                SCLogDebug("no pop3 state, so no request logging");
+                SCReturnPtr(NULL, "json_t");
+            }
+            POP3Transaction *tx = vtx;
             mime_state = tx->mime_state;
             entity = tx->msg_tail;
             SCLogDebug("lets go mime_state %p, entity %p, state_flag %u", mime_state, entity, mime_state ? mime_state->state_flag : 0);
